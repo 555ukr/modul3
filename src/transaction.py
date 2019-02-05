@@ -13,9 +13,9 @@ class Transaction:
     #recipient bitcoin addr base58
     #recipient int
 
-    def __init__(self, recipient, amount, sign
-    First="none"):
+    def __init__(self, recipient, amount, signFirst="none"):
         self.signFirst = signFirst
+        self.fee = 10000
         #init db
 
         self.db = TinyDB('db/wallet.json')

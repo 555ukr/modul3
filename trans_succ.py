@@ -2,6 +2,7 @@ import hashlib
 import base58
 import ecdsa
 import struct
+import binascii
 from enum import Enum
 from ecdsa.util import string_to_number, number_to_string
 from ecdsa.curves import SECP256k1
@@ -62,6 +63,8 @@ def make_raw_transaction():
 
     my_private_key = sender_wif_priv
     my_private_key_hex = base58.b58decode_check(my_private_key)[1:33].hex()
+    print("private-----------", my_private_key_hex)
+    print("private-----------", my_private_key)
 
     recipient = recipient_address
     recipient_hashed_pubkey = base58.b58decode_check(recipient)[1:].hex()
@@ -112,6 +115,8 @@ def make_raw_transaction():
 
     hashed_tx_to_sign = hashlib.sha256(hashlib.sha256(raw_tx_string).digest()).digest()
     pk_bytes = bytes.fromhex(my_private_key_hex)
+    print("iii->>>>>", binascii.unhexlify(my_private_key_hex))
+    print("iii->>>>>", pk_bytes)
     sk = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1)
     # vk = sk.verifying_key
 
@@ -122,6 +127,8 @@ def make_raw_transaction():
     public_key_bytes_hex = sender_compressed_pub
 
     signature = sk.sign_digest(hashed_tx_to_sign, sigencode=ecdsa.util.sigencode_der_canonize)
+
+    print("===============", signature.hex())
 
     sigscript = (
 

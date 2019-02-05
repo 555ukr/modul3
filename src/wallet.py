@@ -4,6 +4,8 @@ import base58
 import hashlib
 from hashlib import sha256
 from ecdsa import SigningKey, SECP256k1, util
+from ecdsa.util import string_to_number, number_to_string
+from ecdsa.curves import SECP256k1
 
 # function generate private key to file
 def generateFile():
@@ -40,6 +42,13 @@ def signature(msg, key):
     public = private.get_verifying_key()
     signature = private.sign(msg.encode('utf-8'), hashfunc=sha256, sigencode=util.sigencode_der)
     return signature.hex(), (public.to_string()).hex()
+    sk = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1)
+
+def sign_trans():
+    private = SigningKey.from_string(binascii.unhexlify(key), curve=SECP256k1, hashfunc=sha256)
+    signature = private.sign_digest(hashed_tx_to_sign, sigencode=ecdsa.util.sigencode_der_canonize)
+    return signature.hex()
+
 
 def make_private_key():
     return secrets.token_hex(32)
