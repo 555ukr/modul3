@@ -20,7 +20,6 @@ def generateWIF(ky):
     shaFirst = sha256(binascii.unhexlify(key)).hexdigest()
     shaSecond = (sha256(binascii.unhexlify(shaFirst)).hexdigest())
     final = base58.b58encode(binascii.unhexlify(key + shaSecond[0:8])).decode("utf-8")
-    print("final wif----------", final)
     return (final)
 
 def make_public_key(key):
@@ -30,13 +29,15 @@ def make_public_key(key):
     return final
 
 def make_bitcoin_address(pbl, net="main"):
-    netw = '00' if net == "main" else '6F'
+    pbl = public_to_compressed(pbl)
+    netw = '00' if net == "main" else '6f'
     sha1 = sha256(binascii.unhexlify(pbl)).hexdigest()
     ripemd = hashlib.new('ripemd160', binascii.unhexlify(sha1)).hexdigest()
     network = netw + ripemd
     coupleSha = sha256(binascii.unhexlify(sha256(binascii.unhexlify(network)).hexdigest())).hexdigest()
     final = base58.b58encode(binascii.unhexlify(network + coupleSha[0:8])).decode("utf-8")
     return (final)
+
 
 def signature(msg, key):
     private = SigningKey.from_string(binascii.unhexlify(key), curve=SECP256k1, hashfunc=sha256)
@@ -47,13 +48,14 @@ def signature(msg, key):
 
 def sign_trans(msg, ky):
     key = base58.b58decode_check(generateWIF(ky))[1:33].hex()
-    print("pppas---", key)
     hashed_tx_to_sign = hashlib.sha256(hashlib.sha256(binascii.unhexlify(msg)).digest()).digest()
     private = SigningKey.from_string(binascii.unhexlify(key), curve=ecdsa.SECP256k1)
     public =  private.get_verifying_key()
+    public = public_to_compressed('04' + (public.to_string()).hex())
+    # print("priv------ ", key)
+    # print("----hash ", hashed_tx_to_sign.hex())
     signature = private.sign_digest(hashed_tx_to_sign, sigencode=ecdsa.util.sigencode_der_canonize)
-    print("pbl-----", (public.to_string()).hex())
-    return signature.hex(), '04' + (public.to_string()).hex()
+    return signature.hex(), public
 
 
 def make_private_key():
@@ -68,10 +70,19 @@ def from_WIF_to_private(wif):
     return secondSha
 
 def make_addr_privKey(net="main"):
-    prv = secrets.token_hex(32)
+    prv = make_private_key()
     pbl = make_public_key(prv)
     addr = make_bitcoin_address(pbl, net)
     return addr, prv
+
+def public_to_compressed(pubkey):
+    pbl = binascii.unhexlify(pubkey[2:])
+    pbl = pbl[: int(len(pbl) / 2)]
+    if pbl[-1] % 2 != 0:
+        pbl = b'\x03' + pbl
+    else:
+        pbl = b'\x02' + pbl
+    return pbl.hex()
 
 # test_prv = "40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"
 # print(test_prv)
@@ -79,4 +90,4 @@ def make_addr_privKey(net="main"):
 # print(test_pbl)
 # print(make_bitcoin_address(test_pbl, net="test"))
 
-print(generateWIF("40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"))
+# print(generateWIF("40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"))

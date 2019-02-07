@@ -33,22 +33,23 @@ class Transaction:
             'tx_in': tx_in,
             'tx_out count': len(tx_out),
             'tx_out': tx_out,
-            'lock_time': int(time.time())
+            'lock_time': 0
         }
         self.status = "OK"
 
     def make_out(self, recipient, amount):
         all_addr = self.db.all()
         sum = 0
-        fee = 50000
+        fee = 10000
         for i in range(len(all_addr)):
             sum = sum + int(all_addr[i]['coins'])
         rest = int(sum) - int(amount) - fee
         if (rest < 0):
             return False, 'error'
-        decode_recip = (base58.b58decode(bytes(recipient, encoding = 'utf-8')).hex())[2:-8]
+        decode_recip = (base58.b58decode(bytes(recipient, encoding = 'utf-8'))[1:-4].hex())
         script_pay = ('76' + 'a9' + format(int(len(decode_recip) / 2), 'x') + decode_recip +
                          '88' + 'ac')
+
         tx_out = [{
             'value': amount,
             'Script Length': int(len(script_pay) / 2),
@@ -56,9 +57,9 @@ class Transaction:
         }]
         if rest != 0:
             addr, prv = make_addr_privKey(net="test")
-            if self.signFirst != "none":
-                print("Rest was retert to address:", addr, "\nPrivate key(pls, remember):", prv)
-            decode_addr = (base58.b58decode(bytes(addr, encoding = 'utf-8')).hex())[2:-8]
+            print("Rest was retert to address:", addr, "\nPrivate key(pls, remember:", prv)
+            # addr = "mgCg2Yd6p2rtey8AaTa5x1aomSpdbU5VJN"
+            decode_addr = (base58.b58decode(bytes(addr, encoding = 'utf-8'))[1:-4].hex())
             script_pay = ('76' + 'a9' + format(int(len(decode_addr) / 2), 'x') + decode_addr +
                             '88' + 'ac')
             tx_out.append({
@@ -74,7 +75,6 @@ class Transaction:
         return True, tx_out
 
     def make_in(self, amount):
-        signHash = "01"
         all_addr = self.db.all()
         sum = 0
         for i in range(len(all_addr)):
@@ -85,14 +85,7 @@ class Transaction:
         list_tx_in = []
         for i in range(len(all_addr)):
             if (all_addr[i]['coins'] != 0):
-                #ask private key for address
-                if self.signFirst == "none":
-                    script_in = all_addr[i]['prev_publ_key']
-                else:
-                    prv = input("Enter private key for %s: " % all_addr[i]['address'])
-                    sign, pbl = sign_trans(self.signFirst, prv)
-                    print("REAL_____PBL: ", pbl)
-                    script_in = format(int(len(sign + signHash) / 2), 'x') + sign + signHash + format(int(len(pbl) / 2), 'x') + pbl
+                script_in = all_addr[i]['prev_publ_key']
                 list_tx_in.append({
                     "Previous txid": all_addr[i]['prev_tx'],
                     "Previous Tx Index": all_addr[i]['prev_tx_ind'],
@@ -101,6 +94,17 @@ class Transaction:
                     "Sequence": "ffffffff"
                 })
         return True, list_tx_in
+
+    def real_sign(self):
+        signHash = "01"
+        all_addr = self.db.all()
+        for i in range(len(self.param['tx_in'])):
+            prv = input("Enter private key for %s: " % all_addr[i]['address'])
+            sign, pbl = sign_trans(self.signFirst, prv)
+            script_in = format(int(len(sign + signHash) / 2), 'x') + sign + signHash + format(int(len(pbl) / 2), 'x') + pbl
+            self.param['tx_in'][i]['Script Length'] = int(len(script_in) / 2)
+            self.param['tx_in'][i]['Signature Script'] = script_in
+
 
     def display(self):
         print("{'vertion':", self.param['vertion'], ",")

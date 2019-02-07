@@ -4,7 +4,8 @@ import json
 
 class Serializer:
 
-    def __init__(self, Trans):
+    def __init__(self, Trans, sign=False):
+        self.sign = sign
         vrt = (int(Trans.param['vertion'])).to_bytes(4, 'little')
         in_count = self.makeVar(Trans.param['tx_in count'])
         out_count = self.makeVar(Trans.param['tx_out count'])
@@ -40,12 +41,13 @@ class Serializer:
     def make(self):
         inp = ""
         out = ""
+        add = "01000000" if (self.sign == True) else ""
         for i in range(len(self.param['input'])):
             inp = inp + self.param['input'][i]
         for i in range(len(self.param['output'])):
             out = out + self.param['output'][i]
         str = (self.param['vertion'] + self.param['input count'] +
-                inp + self.param['output count'] + out)
+                inp + self.param['output count'] + out + self.param['lockTime'] + add)
         return str
 
     def makeVar(self, strval):

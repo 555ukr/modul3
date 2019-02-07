@@ -47,11 +47,13 @@ class HelloWorld(cmd.Cmd):
             return
         trans = Transaction(param[0], param[1])
         # trans.display()
-        seri = Serializer(trans)
+        seri = Serializer(trans, sign=True)
         str = seri.make()
-        trans_sign = Transaction(param[0], param[1], signFirst=str)
+        trans.signFirst = str
+        # print(trans.param['tx_in'][0]['Script Length'])
+        trans.real_sign()
         # trans_sign.display()
-        seri_sign = Serializer(trans_sign)
+        seri_sign = Serializer(trans)
         final = seri_sign.make()
         print(final)
         self.broadcast = final

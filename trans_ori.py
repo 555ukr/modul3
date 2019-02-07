@@ -8,18 +8,15 @@ from ecdsa.util import string_to_number, number_to_string
 from ecdsa.curves import SECP256k1
 
 CURVE_ORDER = SECP256k1.order
-input_amount = 8462282
-output_amount = 60000
-fee = 50000
-sender_address = "mh7jpHw8jEBZjx7j83diZ2XBtqjJ8GNTqv"
-# sender_pub = "0488cd594b9f024e3866fb3960195f118be39b5e5a8f591b3b4c46777ebd6560dff20183e34a2693a4f583ef30a9d40b2a053f09469eff6ceb146c12c6c1b50256"
-sender_compressed_pub = "02b3de1f9c1549a907af43e26117accadd0382d09a29f8304db9f3fd996e14d14c"
-# sender_pub_bytes = bytes.fromhex(sender_pub)
-sender_compressed_pub_bytes = bytes.fromhex(sender_compressed_pub)
-sender_priv = "40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"
-sender_wif_priv = "5JJg9xKTZ1CkqquWVWf3132pwxhR28FBZgHcRd4jHmJgZHQGGPg"
-recipient_address = "n2A2QxKacSbpn5ii3r9dXUsyce2omGQZs8"
-prev_txid = "c110b75c87d8e47e0027d8865fc68b0b20db62c3b63832be303b2359eae71fd9"
+input_amount = 440000
+output_amount = 50000
+fee = 10000
+
+sender_address = "mgCg2Yd6p2rtey8AaTa5x1aomSpdbU5VJN"
+sender_compressed_pub = "0258a045f854d2a537ee64a1d6106e31c2bd527965af79e90d7f7ffbd55a022496"
+sender_priv = "e79c3c41757e007102c5ddab0ff2b8b8dadfc5dc6a01172e82672d0fd3e9f7a7"
+recipient_address = "n3DpYpJ5vPZEJ5K6zGS5NWTD6Y2gy7699p"
+prev_txid = "ee4c1f1b5c0130d67386e80ee2148952c286900c31d3347f1a4128f309a8dbb6"
 
 def ripemd160(x):
     d = hashlib.new('ripemd160')
@@ -60,11 +57,6 @@ def make_raw_transaction():
     my_address = sender_address
     my_hashed_pubkey = base58.b58decode_check(my_address)[1:].hex()
 
-    my_private_key = sender_wif_priv
-    my_private_key_hex = base58.b58decode_check(my_private_key)[1:33].hex()
-    print("private-----------", my_private_key_hex)
-    print("private-----------", my_private_key)
-
     recipient = recipient_address
     recipient_hashed_pubkey = base58.b58decode_check(recipient)[1:].hex()
 
@@ -73,9 +65,8 @@ def make_raw_transaction():
 
     # form tx_in
     rtx.tx_in["txouthash"] = bytes.fromhex(flip_byte_order(my_output_tx))
-    rtx.tx_in["tx_out_index"] = struct.pack("<L", 0)
+    rtx.tx_in["tx_out_index"] = struct.pack("<L", 1)
     rtx.tx_in["script"] = bytes.fromhex("76a914%s88ac" % my_hashed_pubkey)
-    print("---->>>>>", my_hashed_pubkey)
     rtx.tx_in["scrip_bytes"] = struct.pack("<B", len(rtx.tx_in["script"]))
     rtx.tx_in["sequence"] = bytes.fromhex("ffffffff")
 
@@ -108,26 +99,15 @@ def make_raw_transaction():
             + rtx.lock_time
             + struct.pack("<L", 1)
     )
-    print("txouthash------>>", rtx.tx_in["txouthash"].hex()[::-1])
-    print("script---->>>>>>", rtx.tx_in["script"].hex())
-    print("message------>>>", raw_tx_string.hex())
-
+    print("(((((", raw_tx_string.hex())
     hashed_tx_to_sign = hashlib.sha256(hashlib.sha256(raw_tx_string).digest()).digest()
-    pk_bytes = bytes.fromhex(my_private_key_hex)
-    print("iii->>>>>", binascii.unhexlify(my_private_key_hex))
-    print("iii->>>>>", pk_bytes)
+    pk_bytes = bytes.fromhex(sender_priv)
     sk = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1)
-    # vk = sk.verifying_key
-
-    # can be used for uncompressed pubkey
-    # vk_string = vk.to_string()
-    # public_key_bytes = b'\04' + vk_string
-
+    print("priv------ ", pk_bytes.hex())
     public_key_bytes_hex = sender_compressed_pub
 
+    print("----hash ", hashed_tx_to_sign.hex())
     signature = sk.sign_digest(hashed_tx_to_sign, sigencode=ecdsa.util.sigencode_der_canonize)
-
-    print("===============", signature.hex())
 
     sigscript = (
 
