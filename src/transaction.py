@@ -1,5 +1,5 @@
 from hashlib import sha256
-from wallet import make_bitcoin_address, from_WIF_to_private, signature, make_addr_privKey
+from wallet import make_bitcoin_address, from_WIF_to_private, sign_trans, make_addr_privKey
 import binascii
 import os
 import time
@@ -40,9 +40,10 @@ class Transaction:
     def make_out(self, recipient, amount):
         all_addr = self.db.all()
         sum = 0
+        fee = 50000
         for i in range(len(all_addr)):
             sum = sum + int(all_addr[i]['coins'])
-        rest = int(sum) - int(amount)
+        rest = int(sum) - int(amount) - fee
         if (rest < 0):
             return False, 'error'
         decode_recip = (base58.b58decode(bytes(recipient, encoding = 'utf-8')).hex())[2:-8]
@@ -54,8 +55,9 @@ class Transaction:
             'Public Script': script_pay
         }]
         if rest != 0:
-            addr, prv = make_addr_privKey()
-            print("Rest was retert to address:", addr, "\nPrivate key(pls, remember):", prv)
+            addr, prv = make_addr_privKey(net="test")
+            if self.signFirst != "none":
+                print("Rest was retert to address:", addr, "\nPrivate key(pls, remember):", prv)
             decode_addr = (base58.b58decode(bytes(addr, encoding = 'utf-8')).hex())[2:-8]
             script_pay = ('76' + 'a9' + format(int(len(decode_addr) / 2), 'x') + decode_addr +
                             '88' + 'ac')
@@ -85,10 +87,11 @@ class Transaction:
             if (all_addr[i]['coins'] != 0):
                 #ask private key for address
                 if self.signFirst == "none":
-                    script_in = ""
+                    script_in = all_addr[i]['prev_publ_key']
                 else:
                     prv = input("Enter private key for %s: " % all_addr[i]['address'])
-                    sign, pbl = signature(self.signFirst, prv)
+                    sign, pbl = sign_trans(self.signFirst, prv)
+                    print("REAL_____PBL: ", pbl)
                     script_in = format(int(len(sign + signHash) / 2), 'x') + sign + signHash + format(int(len(pbl) / 2), 'x') + pbl
                 list_tx_in.append({
                     "Previous txid": all_addr[i]['prev_tx'],

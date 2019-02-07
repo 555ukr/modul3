@@ -7,7 +7,7 @@ import json
 import os.path
 from serializer import Serializer, Deserializer
 from tx_validator import run_all
-from wallet import make_private_key, make_bitcoin_address, from_WIF_to_private, signature
+from wallet import make_private_key, make_bitcoin_address, from_WIF_to_private, signature,  make_public_key
 from pending_pool import accept_transaction, save_mempool
 
 class HelloWorld(cmd.Cmd):
@@ -17,10 +17,12 @@ class HelloWorld(cmd.Cmd):
 
     def do_new(self, line):
         private = make_private_key()
+        pbl = make_public_key(private)
+        print(pbl)
         if (line == '-testnet'):
-            address = make_bitcoin_address(private, net="test")
+            address = make_bitcoin_address(pbl, net="test")
         else:
-            address = make_bitcoin_address(private)
+            address = make_bitcoin_address(pbl)
         f = open("address", "a")
         f.write(address + '\n')
         print("Bitcoin addr: ", address)
@@ -48,6 +50,7 @@ class HelloWorld(cmd.Cmd):
         seri = Serializer(trans)
         str = seri.make()
         trans_sign = Transaction(param[0], param[1], signFirst=str)
+        # trans_sign.display()
         seri_sign = Serializer(trans_sign)
         final = seri_sign.make()
         print(final)

@@ -9,19 +9,17 @@ from ecdsa.curves import SECP256k1
 
 CURVE_ORDER = SECP256k1.order
 input_amount = 8462282
-output_amount = 10000
+output_amount = 60000
 fee = 50000
-sender_address = "mz4BUifRKs7xgpG6sqAaZxBBY9ABJWYrLj"
-sender_pub = "76a914cb5a2a0dd0d993e9298d860d947b8cdcc00b48d288ac"
-sender_compressed_pub = "0488cd594b9f024e3866fb3960195f118be39b5e5a8f591b3b4c46777ebd6560dff20183e34a2693a4f583ef30a9d40b2a053f09469eff6ceb146c12c6c1b50256"
-sender_pub_bytes = bytes.fromhex(sender_pub)
+sender_address = "mh7jpHw8jEBZjx7j83diZ2XBtqjJ8GNTqv"
+# sender_pub = "0488cd594b9f024e3866fb3960195f118be39b5e5a8f591b3b4c46777ebd6560dff20183e34a2693a4f583ef30a9d40b2a053f09469eff6ceb146c12c6c1b50256"
+sender_compressed_pub = "02b3de1f9c1549a907af43e26117accadd0382d09a29f8304db9f3fd996e14d14c"
+# sender_pub_bytes = bytes.fromhex(sender_pub)
 sender_compressed_pub_bytes = bytes.fromhex(sender_compressed_pub)
-sender_priv = "3188d0d087f3d05301d4acdde4ef505a33c360ad7bad2061b2bfb9135e75a2c7"
-
-sender_wif_priv = "5JC6sYLaQvmSL7gg2644rCxADEx5UxTLaDqLJMHbYMokm3FQWyE"
-recipient_address = "n3DpYpJ5vPZEJ5K6zGS5NWTD6Y2gy7699p"
-prev_txid = "26c0b3850fcbd3eb154b4a54e96311091a9271ad791a43c5d9b046e2d17ef72a"
-
+sender_priv = "40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"
+sender_wif_priv = "5JJg9xKTZ1CkqquWVWf3132pwxhR28FBZgHcRd4jHmJgZHQGGPg"
+recipient_address = "n2A2QxKacSbpn5ii3r9dXUsyce2omGQZs8"
+prev_txid = "c110b75c87d8e47e0027d8865fc68b0b20db62c3b63832be303b2359eae71fd9"
 
 def ripemd160(x):
     d = hashlib.new('ripemd160')
@@ -75,7 +73,7 @@ def make_raw_transaction():
 
     # form tx_in
     rtx.tx_in["txouthash"] = bytes.fromhex(flip_byte_order(my_output_tx))
-    rtx.tx_in["tx_out_index"] = struct.pack("<L", 1)
+    rtx.tx_in["tx_out_index"] = struct.pack("<L", 0)
     rtx.tx_in["script"] = bytes.fromhex("76a914%s88ac" % my_hashed_pubkey)
     print("---->>>>>", my_hashed_pubkey)
     rtx.tx_in["scrip_bytes"] = struct.pack("<B", len(rtx.tx_in["script"]))
@@ -118,8 +116,6 @@ def make_raw_transaction():
     pk_bytes = bytes.fromhex(my_private_key_hex)
     print("iii->>>>>", binascii.unhexlify(my_private_key_hex))
     print("iii->>>>>", pk_bytes)
-    print(type(pk_bytes))
-
     sk = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1)
     # vk = sk.verifying_key
 
@@ -128,8 +124,6 @@ def make_raw_transaction():
     # public_key_bytes = b'\04' + vk_string
 
     public_key_bytes_hex = sender_compressed_pub
-
-    print('/////////////////////', len(hashed_tx_to_sign))
 
     signature = sk.sign_digest(hashed_tx_to_sign, sigencode=ecdsa.util.sigencode_der_canonize)
 
@@ -143,7 +137,7 @@ def make_raw_transaction():
             + bytes.fromhex(public_key_bytes_hex)
 
     )
-    print("~~~~~~~~~~", sigscript.hex())
+
     real_tx = (
             rtx.version
             + rtx.tx_in_count

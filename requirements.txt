@@ -1,9 +1,7 @@
-pip3 install numpy
-pip3 install matplotlib
-pip3 install hashlib
-pip3 install base58
-pip3 install ecdsa
-pip3 install tinydb
-pip3 install Flask
-pip3 install requests
-export FLASK_APP=server.py
+base58==1.0.3
+ecdsa==0.13
+Flask==1.0.2
+matplotlib==3.0.2
+numpy==1.16.1
+requests==2.21.0
+tinydb==3.12.2
