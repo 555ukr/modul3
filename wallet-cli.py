@@ -9,8 +9,11 @@ from serializer import Serializer, Deserializer
 from tx_validator import run_all
 from wallet import make_private_key, make_bitcoin_address, from_WIF_to_private, signature,  make_public_key
 from pending_pool import accept_transaction, save_mempool
+from termcolor import colored
 
 class HelloWorld(cmd.Cmd):
+    prompt = colored('wallet-cli> ', "blue")
+    intro = colored("Welcome to wallet cli!", "yellow")
 
     def do_EOF(self, line):
         return True
@@ -87,5 +90,11 @@ class HelloWorld(cmd.Cmd):
         data = {'data': self.broadcast}
         r = requests.post(url, data)
 
+    def do_exit(self, inp):
+            # '''exit the application.'''
+        print(colored("\nBye for now", "yellow"))
+        return True
+
+    do_EOF = do_exit
 if __name__ == '__main__':
     HelloWorld().cmdloop()

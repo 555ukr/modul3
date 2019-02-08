@@ -76,9 +76,9 @@ def make_addr_privKey(net="main"):
     return addr, prv
 
 def public_to_compressed(pubkey):
-    pbl = binascii.unhexlify(pubkey[2:])
-    pbl = pbl[: int(len(pbl) / 2)]
-    if pbl[-1] % 2 != 0:
+    tmp = binascii.unhexlify(pubkey[2:])
+    pbl = tmp[: int(len(tmp) / 2)]
+    if tmp[-1] % 2:
         pbl = b'\x03' + pbl
     else:
         pbl = b'\x02' + pbl

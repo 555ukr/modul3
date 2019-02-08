@@ -6,6 +6,7 @@ import time
 from tinydb import TinyDB, Query
 import sys
 import base58
+from termcolor import colored
 
 class Transaction:
 
@@ -57,7 +58,8 @@ class Transaction:
         }]
         if rest != 0:
             addr, prv = make_addr_privKey(net="test")
-            print("Rest was retert to address:", addr, "\nPrivate key(pls, remember:", prv)
+            self.restAddr = addr
+            self.restPrv = prv
             # addr = "mgCg2Yd6p2rtey8AaTa5x1aomSpdbU5VJN"
             decode_addr = (base58.b58decode(bytes(addr, encoding = 'utf-8'))[1:-4].hex())
             script_pay = ('76' + 'a9' + format(int(len(decode_addr) / 2), 'x') + decode_addr +
@@ -99,11 +101,12 @@ class Transaction:
         signHash = "01"
         all_addr = self.db.all()
         for i in range(len(self.param['tx_in'])):
-            prv = input("Enter private key for %s: " % all_addr[i]['address'])
+            prv = input(colored("Enter private key for %s: " % all_addr[i]['address'], "green"))
             sign, pbl = sign_trans(self.signFirst, prv)
             script_in = format(int(len(sign + signHash) / 2), 'x') + sign + signHash + format(int(len(pbl) / 2), 'x') + pbl
             self.param['tx_in'][i]['Script Length'] = int(len(script_in) / 2)
             self.param['tx_in'][i]['Signature Script'] = script_in
+        print(colored("Rest was retert to address: %s\nPrivate key(pls, remember): %s" % (self.restAddr, self.restPrv), "red"))
 
 
     def display(self):
