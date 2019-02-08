@@ -18,7 +18,9 @@ class Transaction:
         self.signFirst = signFirst
         self.fee = 10000
         #init db
-
+        if (len(recipient) > 35 or len(recipient) < 26 or not self.is_number(amount)):
+            self.status =  "KO"
+            return
         self.db = TinyDB('db/wallet.json')
         amount = str(int(float(amount) * (10 ** 8)))
 
@@ -60,7 +62,7 @@ class Transaction:
             addr, prv = make_addr_privKey(net="test")
             self.restAddr = addr
             self.restPrv = prv
-            # addr = "mgCg2Yd6p2rtey8AaTa5x1aomSpdbU5VJN"
+
             decode_addr = (base58.b58decode(bytes(addr, encoding = 'utf-8'))[1:-4].hex())
             script_pay = ('76' + 'a9' + format(int(len(decode_addr) / 2), 'x') + decode_addr +
                             '88' + 'ac')
@@ -101,12 +103,15 @@ class Transaction:
         signHash = "01"
         all_addr = self.db.all()
         for i in range(len(self.param['tx_in'])):
-            prv = input(colored("Enter private key for %s: " % all_addr[i]['address'], "green"))
+            prv = input("\033[92mEnter private key for %s: \033[93m" % all_addr[i]['address'])
+            if (len(prv) != 64 or not self.is_hex(prv)):
+                return False
             sign, pbl = sign_trans(self.signFirst, prv)
             script_in = format(int(len(sign + signHash) / 2), 'x') + sign + signHash + format(int(len(pbl) / 2), 'x') + pbl
             self.param['tx_in'][i]['Script Length'] = int(len(script_in) / 2)
             self.param['tx_in'][i]['Signature Script'] = script_in
         print(colored("Rest was retert to address: %s\nPrivate key(pls, remember): %s" % (self.restAddr, self.restPrv), "red"))
+        return True
 
 
     def display(self):
@@ -125,13 +130,20 @@ class Transaction:
             print("        'Script Length':", self.param['tx_out'][i]['Script Length'])
             print("        'Public Script':", self.param['tx_out'][i]['Public Script'], "\n      },")
         print("}")
-    # def hashTransaction(self):
-    #     st = self.sender + self.recipient + format(int(self.amount), 'x')
-    #     return sha256(bytes(st, 'utf-8')).hexdigest()
-    #
-    # def signTransaction(self, hash, prv):
-    #     self.signature, self.publicKey = signature(hash, prv)
-    #     return self.signature, self.publicKey
+
+    def is_number(self, str):
+        try:
+            float(str)
+            return True
+        except ValueError:
+            return False
+
+    def is_hex(self, str):
+        try:
+            int(str, 16)
+            return True
+        except ValueError:
+            return False
 
 
 class CoinbaseTransaction(Transaction):
@@ -177,9 +189,6 @@ class CoinbaseTransaction(Transaction):
         }]
         return True, tx_out
 
-    # def signT(self):
-    #     self.signature, self.publicKey = signature(self.hashTransaction(), self.private)
-    #     return self.signature, self.publicKey
 
 # obj = CoinbaseTransaction('n3DpYpJ5vPZEJ5K6zGS5NWTD6Y2gy7699p')
 # obj.display()

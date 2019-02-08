@@ -10,6 +10,7 @@ from tx_validator import run_all
 from wallet import make_private_key, make_bitcoin_address, from_WIF_to_private, signature,  make_public_key
 from pending_pool import accept_transaction, save_mempool
 from termcolor import colored
+import blockcypher
 
 class HelloWorld(cmd.Cmd):
     prompt = colored('wallet-cli> ', "blue")
@@ -49,34 +50,27 @@ class HelloWorld(cmd.Cmd):
             print("usage: send <address> <amount>")
             return
         trans = Transaction(param[0], param[1])
+        if trans.status == 'KO':
+            print(colored("*" * 50 + "\n\n" + " " * 4 + "ERROR (Wrong bitcoin addres or amount)" + "\n\n" + "*" * 50, 'red'))
+            return
         # trans.display()
         seri = Serializer(trans, sign=True)
         str = seri.make()
         trans.signFirst = str
         # print(trans.param['tx_in'][0]['Script Length'])
-        trans.real_sign()
+        if not trans.real_sign():
+            print("\033[0m\033[91m" + "*" * 50 + "\n\n" + " " * 14 + "ERROR (Wrong private key)" + "\n\n" + "*" * 50 + "\033[0m")
+            return
         # trans_sign.display()
         seri_sign = Serializer(trans)
         final = seri_sign.make()
-        print(final)
+        tmp = ""
+        for i in range(1, len(final) + 1):
+            tmp = tmp + final[i - 1]
+            if i % 49 == 0:
+                tmp = tmp + "\n"
+        print(colored("*" * 50 + "\n\n" + " " * 14 + "Serialized transaction\n\n" + tmp + "\n\n" + "*" * 50, 'green'))
         self.broadcast = final
-        # if (not run_all({
-        #     'sender': addres,
-        #     'recipient': param[0],
-        #     'coins': format(int(param[1]), 'x'),
-        #     'public': pbl.hex(),
-        #     'signature': sign,
-        # })):
-        #     print("Wrong parametes from send command")
-        #     return
-        # obj = Serializer(str(param[1]), addres, param[0], pbl.hex(), sign)
-        # print("serialized transaction: ", obj.make())
-        # status, data = accept_transaction(obj.make())
-        # save_mempool(data)
-        # if (status):
-        #     print("Transaction saved to mem pool")
-        # else:
-        #     print("Transaction dosen't saved to mem pool")
 
     def do_broadcast(self, line):
         param = line.split(" ")
@@ -86,15 +80,24 @@ class HelloWorld(cmd.Cmd):
         if  not hasattr(self, 'broadcast'):
             print("usege: call send before broadcast")
             return
-        url = "http://127.0.0.1:5000/transaction"
-        data = {'data': self.broadcast}
-        r = requests.post(url, data)
-
+        if (param[0] == "-testnet"):
+            API_KEY = "3e10e111bbcc4c6e8fb7fc9baafb564e"
+            check = blockcypher.pushtx(tx_hex = self.broadcast, coin_symbol='btc-testnet', api_key = API_KEY)
+            print(check)
+        else:
+            url = "http://127.0.0.1:5000/transaction"
+            data = {'data': self.broadcast}
+            r = requests.post(url, data)
+            if r.status_code == 200:
+                print(colored("Broadcast succesfull", "yellow"))
+            else:
+                print(colored("Broadcast fail", "red"))
     def do_exit(self, inp):
             # '''exit the application.'''
         print(colored("\nBye for now", "yellow"))
         return True
 
     do_EOF = do_exit
+
 if __name__ == '__main__':
     HelloWorld().cmdloop()

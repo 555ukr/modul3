@@ -19,10 +19,12 @@ class Blockchain:
     def submit_tx(new):
         status, data = accept_transaction(new)
         if (status):
-            save_mempool(data)
-            print("127.0.0.1 --- new transaction saved to mem pool")
+            if save_mempool(data):
+                print("127.0.0.1 --- new transaction saved to mem pool")
+                return True
         else:
             print("127.0.0.1 --- wrong transaction")
+        return False
 
     @staticmethod
     def genesis_block():

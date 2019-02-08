@@ -5,13 +5,16 @@ import json
 from flask import Flask, request
 from blockchain import Blockchain
 from tinydb import TinyDB, Query
+from flask import Response
 
 app = Flask(__name__)
 
 @app.route('/transaction', methods=['POST'])
 def transaction():
-    Blockchain.submit_tx(request.form['data'])
-    return "OK"
+    content = {'please move along': 'nothing to see here'}
+    if not Blockchain.submit_tx(request.form['data']):
+        return Response(json.dumps({'success':False}), 400, {'ContentType':'application/json'})
+    return Response(json.dumps({'success':True}), 200, {'ContentType':'application/json'})
 
 @app.route('/transaction/pending', methods=['GET'])
 def mempoll():
@@ -23,7 +26,3 @@ def mempoll():
         mimetype='application/json'
     )
     return response
-
-@app.route('/', methods=['GET', 'POST'])
-def hello():
-    return 'Hello, World'
