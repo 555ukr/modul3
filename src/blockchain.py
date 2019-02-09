@@ -1,4 +1,4 @@
-from block import Block
+# from block import Block
 from pending_pool import accept_transaction, save_mempool
 from transaction import CoinbaseTransaction
 from tinydb import TinyDB, Query
@@ -28,30 +28,13 @@ class Blockchain:
 
     @staticmethod
     def genesis_block():
-        genesis = CoinbaseTransaction()
-        db = TinyDB('mempoll/db.json')
+        genesis = CoinbaseTransaction("mnKt5wEPTDafet1yGFwcLwr91m6pXVJeh2")
+        seri = Serializer(genesis)
+        str = seri.make()
+        
+        db = TinyDB('db/blk.json')
         db.purge()
-        sgn, pbl = genesis.signT()
-        dic = {
-            "coins": genesis.amount,
-             "sender": genesis.sender,
-             "recipient": genesis.recipient,
-             "public": pbl.hex(),
-             "signature": sgn
-            }
-        save_mempool(dic)
-        blk = Block("0000000000000000000000000000000000000000000000000000000000000000")
-        nonce, hash = Blockchain.mine(1, blk)
-        db = TinyDB('blocks/blk.json')
-        db.purge()
-        db.insert({
-            'index': 1,
-            'nonce': nonce,
-            'hash': hash,
-            'timestamp': blk.timestamp,
-            'previous_hash': blk.previous_hash,
-            'tranasaction': blk.trans
-        })
+
 
     @staticmethod
     def add_node(node):

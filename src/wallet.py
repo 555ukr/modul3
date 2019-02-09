@@ -39,11 +39,11 @@ def make_bitcoin_address(pbl, net="main"):
     return (final)
 
 
-def signature(msg, key):
-    private = SigningKey.from_string(binascii.unhexlify(key), curve=SECP256k1, hashfunc=sha256)
-    public = private.get_verifying_key()
-    signature = private.sign(msg.encode('utf-8'), hashfunc=sha256, sigencode=util.sigencode_der)
-    return signature.hex(), (public.to_string()).hex()
+# def signature(msg, key):
+#     private = SigningKey.from_string(binascii.unhexlify(key), curve=SECP256k1, hashfunc=sha256)
+#     public = private.get_verifying_key()
+#     signature = private.sign(msg.encode('utf-8'), hashfunc=sha256, sigencode=util.sigencode_der)
+#     return signature.hex(), (public.to_string()).hex()
     # sk = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1)
 
 def sign_trans(msg, ky):
@@ -84,10 +84,16 @@ def public_to_compressed(pubkey):
         pbl = b'\x02' + pbl
     return pbl.hex()
 
-# test_prv = "40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"
-# print(test_prv)
-# test_pbl = (make_public_key(test_prv))
-# print(test_pbl)
-# print(make_bitcoin_address(test_pbl, net="test"))
-
-# print(generateWIF("40760e3d3c4739f70f33edaa5c6b6ba0d8c56cddb0bee05e540176d7c247d833"))
+def getFullPubKeyFromCompressed(comp_key:  bytearray) -> bytes:
+    x = int.from_bytes(comp_key[1:], byteorder='big')
+    is_even = True if comp_key[1] == '2' else False
+    """ Derive y point from x point """
+    curve = ecdsa.SECP256k1.curve
+    # The curve equation over F_p is:
+    #   y^2 = x^3 + ax + b
+    a, b, p = curve.a(), curve.b(), curve.p()
+    alpha = (pow(x, 3, p) + a * x + b) % p
+    beta = ecdsa.numbertheory.square_root_mod_prime(alpha, p)
+    if (beta % 2) == is_even:
+        beta = p - beta
+    return bytearray.fromhex( f"04{x:064x}{beta:064x}")

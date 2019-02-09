@@ -1,5 +1,6 @@
 from hashlib import sha256
 from wallet import make_bitcoin_address, from_WIF_to_private, sign_trans, make_addr_privKey
+from tx_validator import validate_addr
 import binascii
 import os
 import time
@@ -17,8 +18,10 @@ class Transaction:
     def __init__(self, recipient, amount, signFirst="none"):
         self.signFirst = signFirst
         self.fee = 10000
+        self.rest = False
         #init db
-        if (len(recipient) > 35 or len(recipient) < 26 or not self.is_number(amount)):
+        if (len(recipient) > 35 or len(recipient) < 26 or not self.is_number(amount) or
+                 not validate_addr(recipient)):
             self.status =  "KO"
             return
         self.db = TinyDB('db/wallet.json')
@@ -43,10 +46,9 @@ class Transaction:
     def make_out(self, recipient, amount):
         all_addr = self.db.all()
         sum = 0
-        fee = 10000
         for i in range(len(all_addr)):
             sum = sum + int(all_addr[i]['coins'])
-        rest = int(sum) - int(amount) - fee
+        rest = int(sum) - int(amount) - self.fee
         if (rest < 0):
             return False, 'error'
         decode_recip = (base58.b58decode(bytes(recipient, encoding = 'utf-8'))[1:-4].hex())
@@ -59,6 +61,7 @@ class Transaction:
             'Public Script': script_pay
         }]
         if rest != 0:
+            self.rest = True
             addr, prv = make_addr_privKey(net="test")
             self.restAddr = addr
             self.restPrv = prv
@@ -110,8 +113,11 @@ class Transaction:
             script_in = format(int(len(sign + signHash) / 2), 'x') + sign + signHash + format(int(len(pbl) / 2), 'x') + pbl
             self.param['tx_in'][i]['Script Length'] = int(len(script_in) / 2)
             self.param['tx_in'][i]['Signature Script'] = script_in
-        print(colored("Rest was retert to address: %s\nPrivate key(pls, remember): %s" % (self.restAddr, self.restPrv), "red"))
         return True
+
+    def displayRest():
+        if self.rest:
+            print(colored("Rest was retert to address: %s\nPrivate key(pls, remember): %s" % (self.restAddr, self.restPrv), "red"))
 
 
     def display(self):
@@ -162,14 +168,14 @@ class CoinbaseTransaction(Transaction):
             'tx_in count': 1,
             'tx_in': [{
                 "Previous txid": "0000000000000000000000000000000000000000000000000000000000000000",
-                "Previous Tx Index": "ffffffff",
+                "Previous Tx Index": 4294967295,
                 "Script Length": 69,
                 "Signature Script": "03ec59062f48616f4254432f53756e204368756e2059753a205a6875616e67205975616e2c2077696c6c20796f75206d61727279206d653f2f06fcc9cacc19c5f278560300",
                 "Sequence": "ffffffff"
             }],
             'tx_out count': 1,
             'tx_out': tx_out,
-            'lock_time': int(time.time())
+            'lock_time': 0
         }
         self.status = "OK"
 

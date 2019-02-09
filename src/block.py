@@ -2,7 +2,6 @@ import time
 from hashlib import sha256
 from pending_pool import get_tree_trans
 from merkle import prepare_data
-from tx_validator import run_all
 from transaction import CoinbaseTransaction
 
 class Block:

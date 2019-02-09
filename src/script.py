@@ -1,6 +1,7 @@
 import hashlib
 from hashlib import sha256
 import binascii
+from tx_validator import validate_signature
 
 def execute(str, msg):
     lifo = []
@@ -29,7 +30,9 @@ def execComm(lifo, comm, msg):
         if first != second:
             return False
     elif comm == 'ac':
-        pass
+        pubKey = lifo.pop(-1)
+        signature = lifo.pop(-1)
+        lifo.append(validate_signature(signature, pubKey, msg))
     elif comm == 'a9':
         elm = lifo.pop(-1)
         sha1 = sha256(binascii.unhexlify(elm)).hexdigest()
@@ -72,6 +75,9 @@ def parse(str, listComm):
         i = i + 1
     return res
 
-# re = execute("47304402200aa5891780e216bf1941b502de29890834a2584eb576657e340d1fa95f2c0268022010712e05b30bfa9a9aaa146927fce1819f2ec6d118d25946256770541a8117b6012103d2305c392cbd5ac36b54d3f23f7305ee024e25000f5277a8c065e12df503592676a9143bbebbd7a3414f9e5afebe79b3b408bada63cde288ac", "LOL")
+# unlock = "483045022100f46d9e19f5195820c0c8f5924918ce63d28518dfffcb6cfd830410296c29f89e0220311418092f860159c530abdb66fe44ed09e80495dc0da88a316c7f452a02f890012103387a90c1051d0fb0c68e9a313e34e27b085e445fd371420d4be08a8974d500b0"
+# lock = "76a9147552068c8d10feb28dc163d5fbdde23e2932218d88ac"
+# msg_R = "01000000019c3b7b71587f3496f1f05c0bff014e1c32817be800c3ca9604bae779ab4e8458010000001976a9147552068c8d10feb28dc163d5fbdde23e2932218d88acffffffff0250c30000000000001976a914c13e315661793e54a8f667d57213de804246801588ace0570e00000000001976a91470085ae0dc5c978f533599f6892408e1c684478488ac0000000001000000"
+# re = execute(unlock + lock, msg_R)
 # print(re)
 # execute("48304502207470cf88ef1919fa30e8083bfff4466b10e7f739482fe35f0707fff512e86792022100d0a02961e55fced9e80ad79e7f705e2bbedcb3288a5644ca278c893a525badae0140e5613ad89d231fb48badf8fa0cef52be9285fa6fa3fb1b72369f2c760e811981abd1d51bfe7a783238181f98dfde3f712b96ca89af4f6b5b977b10a2fd8885be")

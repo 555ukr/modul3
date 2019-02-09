@@ -6,11 +6,11 @@ import cmd
 import json
 import os.path
 from serializer import Serializer, Deserializer
-from tx_validator import run_all
-from wallet import make_private_key, make_bitcoin_address, from_WIF_to_private, signature,  make_public_key
+from wallet import make_private_key, make_bitcoin_address, from_WIF_to_private, make_public_key
 from pending_pool import accept_transaction, save_mempool
 from termcolor import colored
 import blockcypher
+from script import execute
 
 class HelloWorld(cmd.Cmd):
     prompt = colored('wallet-cli> ', "blue")
@@ -22,7 +22,6 @@ class HelloWorld(cmd.Cmd):
     def do_new(self, line):
         private = make_private_key()
         pbl = make_public_key(private)
-        print(pbl)
         if (line == '-testnet'):
             address = make_bitcoin_address(pbl, net="test")
         else:
@@ -54,6 +53,7 @@ class HelloWorld(cmd.Cmd):
             print(colored("*" * 50 + "\n\n" + " " * 4 + "ERROR (Wrong bitcoin addres or amount)" + "\n\n" + "*" * 50, 'red'))
             return
         # trans.display()
+        lock = trans.param['tx_in'][0]['Signature Script']
         seri = Serializer(trans, sign=True)
         str = seri.make()
         trans.signFirst = str
@@ -61,7 +61,10 @@ class HelloWorld(cmd.Cmd):
         if not trans.real_sign():
             print("\033[0m\033[91m" + "*" * 50 + "\n\n" + " " * 14 + "ERROR (Wrong private key)" + "\n\n" + "*" * 50 + "\033[0m")
             return
-        # trans_sign.display()
+        unlock = trans.param['tx_in'][0]['Signature Script']
+        if not execute(unlock + lock , str):
+            print(colored("*" * 50 + "\n\n" + " " * 20 + "Script ERROR" + "\n\n" + "*" * 50, 'red'))
+            return
         seri_sign = Serializer(trans)
         final = seri_sign.make()
         tmp = ""
@@ -83,7 +86,12 @@ class HelloWorld(cmd.Cmd):
         if (param[0] == "-testnet"):
             API_KEY = "3e10e111bbcc4c6e8fb7fc9baafb564e"
             check = blockcypher.pushtx(tx_hex = self.broadcast, coin_symbol='btc-testnet', api_key = API_KEY)
-            print(check)
+            if 'tx' in check:
+                print("Broadcast succesfull tx_hex: %" % check['tx']['hash'], "yellow")
+            elif 'error' in check:
+                print(colored(check['error'], 'red'))
+            else:
+                print(check)
         else:
             url = "http://127.0.0.1:5000/transaction"
             data = {'data': self.broadcast}
