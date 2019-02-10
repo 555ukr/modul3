@@ -6,6 +6,7 @@ from blockchain import Blockchain
 from tinydb import TinyDB, Query
 from hashlib import sha256
 import binascii
+from utxo import updateUTXO, restartUTXO
 
 class HelloWorld(cmd.Cmd):
     prompt = colored('mining-cli> ', "blue")
@@ -15,6 +16,7 @@ class HelloWorld(cmd.Cmd):
         if (len(sys.argv) > 1 and sys.argv[1] == '-restart'):
             Blockchain.genesis_block()
             print(colored('Genesis block created', "cyan"))
+            restartUTXO()
 
     def do_EOF(self, line):
         return True
@@ -41,6 +43,7 @@ class HelloWorld(cmd.Cmd):
     def do_mineNew(self, line):
         Blockchain.newBlock()
         print(colored("New block add to blockchain", "yellow"))
+        updateUTXO()
 
     def do_exit(self, inp):
             # '''exit the application.'''

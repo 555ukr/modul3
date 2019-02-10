@@ -155,7 +155,7 @@ class Transaction:
 class CoinbaseTransaction(Transaction):
 
     def __init__(self, recipient):
-        amount = str(int(float(CoinbaseTransaction.getReword()) * (10 ** 8)))
+        amount = str(int(CoinbaseTransaction.getReword()))
 
         #make list output
 
@@ -181,7 +181,14 @@ class CoinbaseTransaction(Transaction):
 
     @staticmethod
     def getReword():
-        return 50
+        db = TinyDB('db/blk.json')
+        all = len(db.all())
+        val = 50 * 10**8
+        if (int(all / 5) != 0):
+            tmp = int(all / 5)
+            for i in range(tmp):
+                val = int(val / 2)
+        return val
 
     def make_out(self, recipient, amount):
 
@@ -194,7 +201,6 @@ class CoinbaseTransaction(Transaction):
             'Public Script': script_pay
         }]
         return True, tx_out
-
 
 # obj = CoinbaseTransaction('n3DpYpJ5vPZEJ5K6zGS5NWTD6Y2gy7699p')
 # obj.display()

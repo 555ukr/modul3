@@ -11,6 +11,8 @@ from pending_pool import accept_transaction, save_mempool
 from termcolor import colored
 import blockcypher
 from script import execute
+from tinydb import TinyDB, Query
+import base58
 
 class HelloWorld(cmd.Cmd):
     prompt = colored('wallet-cli> ', "blue")
@@ -30,6 +32,8 @@ class HelloWorld(cmd.Cmd):
         f.write(address + '\n')
         print("Bitcoin addr: ", address)
         print("Private key: ", private)
+        db = TinyDB('db/addr.json')
+        db.insert({"addr": address})
 
     def do_import(self, line):
         if not os.path.isfile(line):
@@ -42,6 +46,8 @@ class HelloWorld(cmd.Cmd):
         f = open("address", "a")
         f.write(address + '\n')
         print("Private key: ", private)
+        db = TinyDB('db/addr.json')
+        db.insert({"addr": address})
 
     def do_send(self, line):
         param = line.split(" ")
@@ -109,6 +115,23 @@ class HelloWorld(cmd.Cmd):
             # '''exit the application.'''
         print(colored("\nBye for now", "yellow"))
         return True
+
+    def do_getBalance(self, line):
+        res = 0
+        db = TinyDB('db/addr.json')
+        addr = db.all()
+        for i in addr:
+            i['addr'] = (base58.b58decode(bytes(i['addr'], encoding = 'utf-8'))[1:-4].hex())
+            i['addr'] = ('76' + 'a9' + format(int(len(i['addr']) / 2), 'x') + i['addr'] +
+                          '88' + 'ac')
+        db = TinyDB('db/utxo.json')
+        for i in addr:
+            Utxo = Query()
+            tmp = db.search(Utxo.Public_Script == i['addr'])
+            if len(tmp) != 0:
+                for y in tmp:
+                    res = res + int(y['value'])
+        print(res)
 
     do_EOF = do_exit
 
