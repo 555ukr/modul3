@@ -77,12 +77,12 @@ class Deserializer:
         outputCounterVal, outputCounterEnd = Deserializer.getVar(str[inputCounterEnd + ilen:], inputCounterEnd + ilen)
         olen, out = self.getOut(outputCounterVal, str[outputCounterEnd:])
         self.param = {
-            'Vertion': str[0 : 8],
-            'Input Count': inputCounterVal,
-            'Inputs': inp,
-            'Output Count': outputCounterVal,
-            'Outputs': out,
-            'Locktime': str[-8 : ]
+            'vertion': str[0 : 8],
+            'tx_in count': inputCounterVal,
+            'tx_in': inp,
+            'tx_out count': outputCounterVal,
+            'tx_out': out,
+            'lock_time': int(str[-8 : ], 16)
         }
 
     @staticmethod
@@ -111,10 +111,10 @@ class Deserializer:
             scr_len, endScriptvar = Deserializer.getVar(str[(txid + vout) + round:], (txid + vout) + round)
             bytesScriptvar = endScriptvar - (txid + vout + round)
             inp.append({
-                'TXID': str[:round + txid],
-                'VOUT': str[round + txid: round + txid + vout],
-                'ScriptSig Size': scr_len,
-                'ScriptSig': str[round + txid + vout + bytesScriptvar: round + txid + vout + bytesScriptvar + scr_len * 2],
+                'Previous txid': str[round:round + txid],
+                'Previous Tx Index': str[round + txid: round + txid + vout],
+                'Script Length': scr_len,
+                'Signature Script': str[round + txid + vout + bytesScriptvar: round + txid + vout + bytesScriptvar + scr_len * 2],
                 'Sequence': str[round + txid + vout + bytesScriptvar + scr_len * 2: round + txid + vout + bytesScriptvar + scr_len * 2 + seqence]
             })
             round = round + txid + vout + bytesScriptvar + scr_len * 2 + seqence
@@ -127,21 +127,22 @@ class Deserializer:
         for i in range(len):
             scr_len, endScriptvar = Deserializer.getVar(str[value + round:], value + round)
             bytesScriptvar = endScriptvar - (value + round)
+            print("-------", str[:round + value])
             out.append({
-                'Value': str[:round + value],
-                'ScriptPubKey Size': scr_len,
-                'ScriptPubKey': str[round + value + bytesScriptvar: round + value + bytesScriptvar + scr_len * 2]
+                'value': str[round:round + value],
+                'Script Length': scr_len,
+                'Public Script': str[round + value + bytesScriptvar: round + value + bytesScriptvar + scr_len * 2]
             })
             round = round + value + bytesScriptvar + scr_len * 2
         return round, out
 
     def make(self):
-        self.param['Vertion'] = (binascii.unhexlify(self.param['Vertion'])[::-1]).hex()
-        for i in range(len(self.param['Inputs'])):
-            self.param['Inputs'][i]['TXID'] = (binascii.unhexlify(self.param['Inputs'][i]['TXID'])[::-1]).hex()
-            self.param['Inputs'][i]['VOUT'] = (binascii.unhexlify(self.param['Inputs'][i]['VOUT'])[::-1]).hex()
-        for i in range(len(self.param['Outputs'])):
-            self.param['Outputs'][i]['Value'] = (binascii.unhexlify(self.param['Outputs'][i]['Value'])[::-1]).hex()
+        self.param['vertion'] = int((binascii.unhexlify(self.param['vertion'])[::-1]).hex(), 16)
+        for i in range(len(self.param['tx_in'])):
+            self.param['tx_in'][i]['Previous txid'] = (binascii.unhexlify(self.param['tx_in'][i]['Previous txid'])[::-1]).hex()
+            self.param['tx_in'][i]['Previous Tx Index'] = int((binascii.unhexlify(self.param['tx_in'][i]['Previous Tx Index'])[::-1]).hex(), 16)
+        for i in range(len(self.param['tx_out'])):
+            self.param['tx_out'][i]['value'] = int((binascii.unhexlify(self.param['tx_out'][i]['value'])[::-1]).hex(), 16)
 
     def toJSON(self):
         return json.dumps(self.param, default=lambda o: o.__dict__,

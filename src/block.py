@@ -3,26 +3,62 @@ from hashlib import sha256
 from pending_pool import get_tree_trans
 from merkle import prepare_data
 from transaction import CoinbaseTransaction
+import binascii
+# from blockchain import Blockchain
 
 class Block:
 
-    def __init__(self, previous_hash):
-        self.timestamp = int(time.time())
+    def __init__(self, previous_hash, coinbase):
+        self.prev_hash = previous_hash
+        self.coinbase = coinbase
         self.nonce = 0
-        self.previous_hash = previous_hash
-        coinbase = CoinbaseTransaction()
-        sgn, pbl = coinbase.signT()
-        self.trans = get_tree_trans()
-        self.hashTree = prepare_data(self.trans.copy())
 
-    def valid(self):
-        for i in range(len(self.trans)):
-            self.trans[i]['coins'] = format(self.trans[i]['coins'], 'x')
-            if not run_all(self.trans[i]):
-                return False
-        return True
+        self.trans = get_tree_trans()
+        self.trans.insert(0, {
+            "transaction": self.coinbase.param,
+            "hash": ""
+        })
+        blockHeader = self.blockHeader()
+        tmp = []
+        for i in self.trans:
+            tmp.append(i['transaction'])
+        self.param = {
+            'Block Size': "ffffffff",
+            "Block Header": blockHeader,
+            "Transaction Counter": len(tmp),
+            "Transactions": tmp
+        }
+
+    def blockHeader(self):
+        tree = prepare_data(self.trans.copy())
+        target = self.calculateTagret()
+        self.header = {
+            "Version": 1,
+            "Previous Block Hash": self.prev_hash,
+            "Merkle Root": tree,
+            "Timestamp": int(time.time()),
+            "Difficulty Target": target,
+            "Nonce": self.nonce
+        }
+        return self.header
+
+    def calculateTagret(self):
+        return "2003a30c"
 
     def hashBlock(self):
-        data = sha256(bytes(str(self.timestamp) + str(self.nonce) +
-            self.previous_hash + self.hashTree, 'utf-8')).hexdigest()
+        data = sha256(((self.header['Version']).to_bytes(4, "little") +
+            binascii.unhexlify(self.header['Previous Block Hash']) +
+            binascii.unhexlify(self.header['Merkle Root']) +
+            (self.header['Timestamp']).to_bytes(4, "little") +
+            (binascii.unhexlify(self.header["Difficulty Target"])[::-1]) +
+            (self.header['Nonce']).to_bytes(4, "little"))).hexdigest()
         return data
+
+# cn = CoinbaseTransaction('mnKt5wEPTDafet1yGFwcLwr91m6pXVJeh2')
+# print("*************")
+# obj = Block("0000000000000000000000000000000000000000000000000000000000000000", cn)
+# nonce, hash = Blockchain.mine(obj)
+# print(obj.param)
+# print('____________________')
+# print(nonce)
+# print(hash)

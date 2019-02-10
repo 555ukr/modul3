@@ -66,7 +66,12 @@ class HelloWorld(cmd.Cmd):
             print(colored("*" * 50 + "\n\n" + " " * 20 + "Script ERROR" + "\n\n" + "*" * 50, 'red'))
             return
         seri_sign = Serializer(trans)
+        # print(trans.param)
+        # print('____________________')
         final = seri_sign.make()
+        # obk = Deserializer(final)
+        # obk.make()
+        # print(obk.param)
         tmp = ""
         for i in range(1, len(final) + 1):
             tmp = tmp + final[i - 1]

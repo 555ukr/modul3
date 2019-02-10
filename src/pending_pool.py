@@ -1,6 +1,5 @@
 import sys
 sys.path.insert(0, 'src/')
-# from tx_validator import run_all
 from serializer import Deserializer
 from tinydb import TinyDB, Query
 from hashlib import sha256
@@ -10,9 +9,6 @@ def accept_transaction(str):
     obj = Deserializer(str)
     obj.make()
     hash = sha256(binascii.unhexlify(str)).hexdigest()
-    # if not run_all(data):
-    #     return False, data
-
     return (True, {
                     "transaction": obj.param,
                     "hash": hash
