@@ -26,3 +26,14 @@ def mempoll():
         mimetype='application/json'
     )
     return response
+
+@app.route('/getDifficulty', methods=['GET'])
+def difficulty():
+    db = TinyDB('db/blk.json')
+    lst = db.all()[-1:]
+    response = app.response_class(
+        response=json.dumps(lst[0]['Block Header']['Difficulty Target']),
+        status=200,
+        mimetype='application/json'
+    )
+    return response

@@ -13,6 +13,8 @@ import blockcypher
 from script import execute
 from tinydb import TinyDB, Query
 import base58
+import io
+from contextlib import redirect_stdout
 
 class HelloWorld(cmd.Cmd):
     prompt = colored('wallet-cli> ', "blue")
@@ -132,6 +134,31 @@ class HelloWorld(cmd.Cmd):
                 for y in tmp:
                     res = res + int(y['value'])
         print(res)
+
+    def do_test(self,line):
+        f = io.StringIO()
+        g = io.StringIO()
+        h = io.StringIO()
+        print(colored("Test 'new'", "yellow"))
+        with redirect_stdout(f):
+            self.do_new("")
+        print(colored("ok", "green"))
+        print(colored("Test 'getBalance'", "yellow"))
+        with redirect_stdout(g):
+            self.do_getBalance("")
+        balance = g.getvalue().rstrip()
+        if (balance == "5000000000"):
+            print(colored("ok", "green"))
+        else:
+            print(colored("ko", "red"))
+        print(colored("Test 'broadcast'", "yellow"))
+        with redirect_stdout(h):
+            self.do_broadcast("")
+        brd = h.getvalue().rstrip()
+        if (brd == "usege: call send before broadcast"):
+            print(colored("ok", "green"))
+        else:
+            print(colored("ko", "red"))
 
     do_EOF = do_exit
 
