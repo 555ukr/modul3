@@ -1,3 +1,4 @@
+#!/usr/bin/python3.6
 import secrets
 import binascii
 import base58
@@ -96,4 +97,4 @@ def getFullPubKeyFromCompressed(comp_key:  bytearray) -> bytes:
     beta = ecdsa.numbertheory.square_root_mod_prime(alpha, p)
     if (beta % 2) == is_even:
         beta = p - beta
-    return bytearray.fromhex( f"04{x:064x}{beta:064x}")
+    return bytearray.fromhex(f'04{x:064x}{beta:064x}')

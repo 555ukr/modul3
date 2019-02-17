@@ -20,7 +20,7 @@ $app->post("/getBlock", function(Request $request, Response $response, array $ar
 
     $ch = curl_init();
 
-    curl_setopt($ch, CURLOPT_URL,"http://localhost:5000/getBlockByHeight");
+    curl_setopt($ch, CURLOPT_URL,"http://10.86.1.6:3000/getBlockByHeight");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS,
               "data={$data}");
@@ -47,7 +47,7 @@ $app->post("/getBlockHash", function(Request $request, Response $response, array
 
     $ch = curl_init();
 
-    curl_setopt($ch, CURLOPT_URL,"http://localhost:5000/getBlockByHash");
+    curl_setopt($ch, CURLOPT_URL,"http://10.86.1.6:3000/getBlockByHash");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS,
               "data={$data}");

@@ -45,3 +45,80 @@ td, th {
 .error{
   font-family: arial, sans-serif;
 }
+
+span{
+  color: black;
+  padding-right: 10px;
+}
+
+input{
+   text-align:center;
+}
+
+.footer {
+   position: fixed;
+   left: 0;
+   bottom: 0;
+   width: 100%;
+   background-color: grey;
+   opacity: 0.8;
+   color: white;
+}
+
+.header {
+   text-align: left;
+   position: fixed;
+   left: 0;
+   top: 0;
+   width: 100%;
+   height: 30px;
+   opacity: 0.75;
+   color: black;
+   display:flex;
+}
+
+.autor{
+  padding: 10px
+}
+
+.wrap{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+i{
+  padding-right: 10px
+}
+
+a{
+  color: white;
+}
+
+.logo{
+  padding-left: 30px;
+  font-family: "Lucida Console";
+  font-size: 48px;
+}
+
+#triangle-down {
+      width: 0;
+      height: 0;
+      border-left: 50px solid transparent;
+      border-right: 50px solid transparent;
+      border-top: 100px solid red;
+    }
+#triangle-down:hover {
+  cursor: pointer;
+  width: 0;
+  height: 0;
+  border-top: 50px solid transparent;
+  border-left: 100px solid red;
+  border-bottom: 50px solid transparent;
+}
+
+.summory {
+  font-size: 24px;
+  font-weight: bold;
+}

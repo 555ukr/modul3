@@ -1,3 +1,4 @@
+
 import sys
 sys.path.insert(0, 'src/')
 
@@ -8,6 +9,8 @@ from tinydb import TinyDB, Query
 from flask import Response
 from hashlib import sha256
 import binascii
+from merkle import Param
+from serializer import Serializer
 
 app = Flask(__name__)
 
@@ -46,7 +49,13 @@ def blockReturn():
     heigh = int(request.form['data'])
     db = TinyDB('db/blk.json')
     lst = db.all()[heigh]
-    print(lst)
+    tranHashLst = [];
+    for i in lst['Transactions']:
+        tmp = Param(i)
+        obj = Serializer(tmp)
+        data = sha256(binascii.unhexlify(obj.make())).hexdigest()
+        tranHashLst.append(data)
+    lst["Transaction Data"] = tranHashLst
     response = app.response_class(
         response=json.dumps(lst),
         status=200,
@@ -73,6 +82,13 @@ def blockReturnHash():
             (binascii.unhexlify(i["Block Header"]["Difficulty Target"])[::-1]) +
             (i["Block Header"]['Nonce']).to_bytes(4, "little"))).hexdigest()
         if data == hash:
+            tranHashLst = [];
+            for y in i['Transactions']:
+                tmp = Param(y)
+                obj = Serializer(tmp)
+                data = sha256(binascii.unhexlify(obj.make())).hexdigest()
+                tranHashLst.append(data)
+            i["Transaction Data"] = tranHashLst
             response = app.response_class(
                 response=json.dumps(i),
                 status=200,
