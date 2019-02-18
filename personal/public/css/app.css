@@ -27,7 +27,14 @@ body, html {
   border: 1px solid;
   padding: 10px;
   box-shadow: 5px 10px 8px #888888;
-  border-radius: 5px
+  border-radius: 5px;
+}
+
+.root{
+  transition: 1s;
+  display: none;
+  visibility: visible;
+  opacity: 1;
 }
 
 table {
@@ -108,7 +115,9 @@ a{
       border-left: 50px solid transparent;
       border-right: 50px solid transparent;
       border-top: 100px solid red;
-    }
+      transition: 1s;
+}
+
 #triangle-down:hover {
   cursor: pointer;
   width: 0;
@@ -121,4 +130,12 @@ a{
 .summory {
   font-size: 24px;
   font-weight: bold;
+}
+
+.search {
+
+}
+
+.search:hover{
+  cursor:pointer;
 }

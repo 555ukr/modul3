@@ -61,3 +61,44 @@ $app->post("/getBlockHash", function(Request $request, Response $response, array
 
     return ;
 });
+
+
+$app->post("/getTransaction", function(Request $request, Response $response, array $args) {
+  $param = $request->getParsedBody();
+  $data = $param['data'];
+
+  $ch = curl_init();
+
+  curl_setopt($ch, CURLOPT_URL,"http://10.86.1.6:3000/getTransaction");
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS,
+            "data={$data}");
+
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+  $server_output = curl_exec($ch);
+  print($server_output);
+
+  curl_close ($ch);
+  return ;
+});
+
+$app->post("/getBlockAddress", function(Request $request, Response $response, array $args) {
+  $param = $request->getParsedBody();
+  $data = $param['data'];
+
+  $ch = curl_init();
+
+  curl_setopt($ch, CURLOPT_URL,"http://10.86.1.6:3000/getBlockAddress");
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS,
+            "data={$data}");
+
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+  $server_output = curl_exec($ch);
+  print($server_output);
+
+  curl_close ($ch);
+  return ;
+});
