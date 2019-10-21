@@ -5,7 +5,7 @@ certifi==2018.11.29
 chardet==3.0.4
 Click==7.0
 colored==1.3.93
-ecdsa==0.13
+ecdsa==0.13.3
 Flask==1.0.2
 Flask-API==1.1
 idna==2.8
